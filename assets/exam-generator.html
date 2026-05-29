@@ -1,0 +1,1392 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>英语试卷</title>
+    <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Fraunces:wght@600;700;900&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --primary: #0D9488;
+            --primary-light: #14B8A6;
+            --primary-dark: #0F766E;
+            --accent: #F59E0B;
+            --success: #10B981;
+            --danger: #EF4444;
+            --warning: #F97316;
+            --bg-main: #F8FAFB;
+            --bg-warm: #FFFBEB;
+            --text-primary: #1E293B;
+            --text-secondary: #64748B;
+            --text-muted: #94A3B8;
+            --border: #E2E8F0;
+            --shadow-sm: 0 1px 3px rgba(0,0,0,0.08);
+            --shadow-md: 0 4px 12px rgba(0,0,0,0.1);
+            --shadow-lg: 0 10px 30px rgba(0,0,0,0.12);
+            --radius-sm: 8px;
+            --radius-md: 12px;
+            --radius-lg: 20px;
+            --radius-xl: 28px;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'DM Sans', -apple-system, BlinkMacSystemFont, sans-serif;
+            background: var(--bg-main);
+            color: var(--text-primary);
+            min-height: 100vh;
+            line-height: 1.6;
+            overflow-x: hidden;
+        }
+
+        .noise-bg {
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0.03;
+            z-index: 0;
+            pointer-events: none;
+            background-image: url("data:image/svg+xml,%3Csvg viewBox='0 0 256 256' xmlns='http://www.w3.org/2000/svg'%3E%3Cfilter id='noise'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.9' numOctaves='4' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23noise)'/%3E%3C/svg%3E");
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            padding: 32px 24px 80px;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* Header */
+        .header {
+            text-align: center;
+            margin-bottom: 40px;
+            animation: fadeInDown 0.8s ease-out;
+        }
+
+        @keyframes fadeInDown {
+            from { opacity: 0; transform: translateY(-20px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .exam-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.2em;
+            font-weight: 900;
+            color: var(--text-primary);
+            letter-spacing: -0.02em;
+            margin-bottom: 8px;
+        }
+
+        .exam-subtitle {
+            font-size: 1.05em;
+            color: var(--text-secondary);
+            font-weight: 500;
+        }
+
+        /* Timer & Progress Bar */
+        .status-bar {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            gap: 20px;
+            padding: 18px 28px;
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-md);
+            border: 1px solid var(--border);
+            margin-bottom: 32px;
+            animation: fadeInUp 0.8s ease-out 0.15s both;
+        }
+
+        @keyframes fadeInUp {
+            from { opacity: 0; transform: translateY(24px); }
+            to { opacity: 1; transform: translateY(0); }
+        }
+
+        .timer-group {
+            display: flex;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .timer-label {
+            font-size: 0.92em;
+            font-weight: 700;
+            color: var(--text-secondary);
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .timer-display {
+            font-family: 'SF Mono', 'Monaco', monospace;
+            font-size: 1.5em;
+            font-weight: 700;
+            color: var(--primary);
+            background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);
+            padding: 10px 22px;
+            border-radius: var(--radius-md);
+            letter-spacing: 0.05em;
+            border: 2px solid var(--primary-light);
+        }
+
+        .progress-group {
+            flex: 1;
+            max-width: 300px;
+        }
+
+        .progress-label {
+            font-size: 0.85em;
+            font-weight: 700;
+            color: var(--text-secondary);
+            margin-bottom: 8px;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        .progress-bar {
+            width: 100%;
+            height: 10px;
+            background: var(--border);
+            border-radius: 10px;
+            overflow: hidden;
+        }
+
+        .progress-fill {
+            height: 100%;
+            background: linear-gradient(90deg, var(--primary) 0%, var(--primary-light) 100%);
+            border-radius: 10px;
+            transition: width 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+            box-shadow: 0 2px 8px rgba(13, 148, 136, 0.3);
+        }
+
+        /* Questions */
+        .questions-container {
+            animation: fadeInUp 0.8s ease-out 0.25s both;
+        }
+
+        .question-card {
+            background: white;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-lg);
+            padding: 28px;
+            margin-bottom: 24px;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            position: relative;
+            animation: slideIn 0.6s ease-out backwards;
+        }
+
+        .question-card:nth-child(1) { animation-delay: 0.05s; }
+        .question-card:nth-child(2) { animation-delay: 0.1s; }
+        .question-card:nth-child(3) { animation-delay: 0.15s; }
+        .question-card:nth-child(4) { animation-delay: 0.2s; }
+        .question-card:nth-child(5) { animation-delay: 0.25s; }
+
+        @keyframes slideIn {
+            from { opacity: 0; transform: translateX(-16px); }
+            to { opacity: 1; transform: translateX(0); }
+        }
+
+        .question-card:hover {
+            border-color: var(--primary-light);
+            box-shadow: var(--shadow-md);
+        }
+
+        .question-header {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            margin-bottom: 18px;
+        }
+
+        .question-number {
+            width: 40px;
+            height: 40px;
+            background: linear-gradient(135deg, var(--primary) 0%, var(--primary-dark) 100%);
+            color: white;
+            border-radius: var(--radius-md);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            font-size: 1.1em;
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.3);
+            flex-shrink: 0;
+        }
+
+        .question-type-badge {
+            padding: 6px 14px;
+            background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);
+            color: var(--primary-dark);
+            border-radius: 20px;
+            font-size: 0.82em;
+            font-weight: 700;
+            border: 1px solid var(--primary-light);
+        }
+
+        .question-text {
+            font-size: 1.08em;
+            line-height: 1.7;
+            color: var(--text-primary);
+            margin-bottom: 20px;
+            font-weight: 500;
+        }
+
+        /* Options */
+        .options-list {
+            list-style: none;
+            display: grid;
+            gap: 10px;
+        }
+
+        .option-item {
+            background: var(--bg-main);
+            padding: 16px 20px;
+            border-radius: var(--radius-md);
+            cursor: pointer;
+            transition: all 0.25s cubic-bezier(0.4, 0, 0.2, 1);
+            border: 2px solid transparent;
+            display: flex;
+            align-items: center;
+            gap: 14px;
+        }
+
+        .option-item:hover {
+            background: white;
+            border-color: var(--primary-light);
+            transform: translateX(4px);
+            box-shadow: var(--shadow-sm);
+        }
+
+        .option-item.selected {
+            background: linear-gradient(135deg, #F0FDFA 0%, #CCFBF1 100%);
+            border-color: var(--primary);
+            box-shadow: 0 4px 12px rgba(13, 148, 136, 0.15);
+        }
+
+        .option-item.correct {
+            background: linear-gradient(135deg, #ECFDF5 0%, #D1FAE5 100%);
+            border-color: var(--success);
+            animation: correctPulse 0.5s ease;
+        }
+
+        @keyframes correctPulse {
+            0%, 100% { transform: scale(1); }
+            50% { transform: scale(1.01); }
+        }
+
+        .option-item.incorrect {
+            background: linear-gradient(135deg, #FEF2F2 0%, #FEE2E2 100%);
+            border-color: var(--danger);
+            animation: shake 0.4s ease;
+        }
+
+        @keyframes shake {
+            0%, 100% { transform: translateX(0); }
+            25% { transform: translateX(-6px); }
+            75% { transform: translateX(6px); }
+        }
+
+        .option-marker {
+            width: 32px;
+            height: 32px;
+            border-radius: 50%;
+            background: white;
+            border: 2px solid var(--border);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: 800;
+            color: var(--text-secondary);
+            flex-shrink: 0;
+            transition: all 0.25s ease;
+            font-size: 0.9em;
+        }
+
+        .option-item.selected .option-marker {
+            background: var(--primary);
+            color: white;
+            border-color: var(--primary);
+        }
+
+        .option-text {
+            flex: 1;
+            font-size: 1em;
+            color: var(--text-primary);
+            font-weight: 500;
+        }
+
+        /* Fill Blank Input */
+        .fill-blank-input {
+            padding: 11px 18px;
+            border: 2px solid var(--border);
+            border-radius: var(--radius-md);
+            font-size: 1em;
+            transition: all 0.25s ease;
+            font-family: inherit;
+            background: white;
+            min-width: 200px;
+            font-weight: 500;
+        }
+
+        .fill-blank-input:focus {
+            outline: none;
+            border-color: var(--primary);
+            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.1);
+        }
+
+        /* Reading Passage */
+        .reading-passage {
+            background: linear-gradient(135deg, var(--bg-warm) 0%, #FEF3C7 100%);
+            padding: 26px;
+            border-radius: var(--radius-md);
+            line-height: 1.85;
+            margin-bottom: 22px;
+            border: 2px solid #FDE68A;
+            font-size: 1.03em;
+            color: #78350F;
+            max-height: 380px;
+            overflow-y: auto;
+            box-shadow: inset 0 2px 8px rgba(0,0,0,0.04);
+        }
+
+        /* Action Buttons */
+        .action-buttons {
+            display: flex;
+            justify-content: center;
+            gap: 14px;
+            flex-wrap: wrap;
+            margin-top: 40px;
+            padding: 28px;
+            background: white;
+            border-radius: var(--radius-xl);
+            box-shadow: var(--shadow-lg);
+            border: 1px solid var(--border);
+            animation: fadeInUp 0.8s ease-out 0.35s both;
+        }
+
+        .btn {
+            padding: 16px 42px;
+            border: none;
+            border-radius: var(--radius-xl);
+            font-size: 1.08em;
+            font-weight: 700;
+            cursor: pointer;
+            transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+            font-family: inherit;
+            letter-spacing: 0.02em;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .btn::after {
+            content: '';
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            width: 0;
+            height: 0;
+            border-radius: 50%;
+            background: rgba(255,255,255,0.3);
+            transform: translate(-50%, -50%);
+            transition: width 0.5s, height 0.5s;
+        }
+
+        .btn:hover::after {
+            width: 300px;
+            height: 300px;
+        }
+
+        .btn-success {
+            background: linear-gradient(135deg, var(--success) 0%, #059669 100%);
+            color: white;
+            box-shadow: 0 8px 24px rgba(16, 185, 129, 0.35);
+        }
+
+        .btn-success:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(16, 185, 129, 0.45);
+        }
+
+        .btn-warning {
+            background: linear-gradient(135deg, var(--warning) 0%, #EA580C 100%);
+            color: white;
+            box-shadow: 0 8px 24px rgba(249, 115, 22, 0.35);
+        }
+
+        .btn-warning:hover {
+            transform: translateY(-3px);
+            box-shadow: 0 12px 32px rgba(249, 115, 22, 0.45);
+        }
+
+        /* Result Panel */
+        .result-panel {
+            background: linear-gradient(135deg, #0D9488 0%, #0F766E 50%, #115E59 100%);
+            color: white;
+            padding: 56px 48px;
+            text-align: center;
+            border-radius: var(--radius-xl);
+            margin-top: 32px;
+            position: relative;
+            overflow: hidden;
+            box-shadow: var(--shadow-xl);
+            animation: scaleIn 0.6s ease-out;
+        }
+
+        @keyframes scaleIn {
+            from { opacity: 0; transform: scale(0.95); }
+            to { opacity: 1; transform: scale(1); }
+        }
+
+        .result-panel::before {
+            content: '';
+            position: absolute;
+            top: -50%;
+            right: -50%;
+            width: 200%;
+            height: 200%;
+            background: radial-gradient(circle, rgba(255,255,255,0.08) 0%, transparent 60%);
+            animation: rotate 25s linear infinite;
+        }
+
+        @keyframes rotate {
+            from { transform: rotate(0deg); }
+            to { transform: rotate(360deg); }
+        }
+
+        .result-icon {
+            font-size: 4.2em;
+            margin-bottom: 18px;
+            animation: bounce 2.5s infinite;
+            position: relative;
+        }
+
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-12px); }
+        }
+
+        .result-title {
+            font-family: 'Fraunces', serif;
+            font-size: 2.2em;
+            font-weight: 900;
+            margin-bottom: 24px;
+            position: relative;
+        }
+
+        .result-score {
+            font-size: 5.5em;
+            font-weight: 900;
+            font-family: 'Fraunces', serif;
+            margin: 24px 0;
+            text-shadow: 0 4px 24px rgba(0,0,0,0.2);
+            position: relative;
+            line-height: 1;
+        }
+
+        .result-details {
+            font-size: 1.2em;
+            line-height: 2;
+            position: relative;
+            background: rgba(255,255,255,0.15);
+            backdrop-filter: blur(10px);
+            padding: 26px 32px;
+            border-radius: var(--radius-lg);
+            display: inline-block;
+            margin-top: 20px;
+            border: 1px solid rgba(255,255,255,0.2);
+        }
+
+        .result-grade {
+            font-size: 1.7em;
+            font-weight: 800;
+            margin-top: 24px;
+            padding: 14px 36px;
+            background: rgba(255,255,255,0.2);
+            backdrop-filter: blur(10px);
+            border-radius: 50px;
+            display: inline-block;
+            position: relative;
+            border: 1px solid rgba(255,255,255,0.3);
+        }
+
+        /* Responsive */
+        @media (max-width: 768px) {
+            .container {
+                padding: 24px 16px 60px;
+            }
+
+            .exam-title {
+                font-size: 1.7em;
+            }
+
+            .status-bar {
+                flex-direction: column;
+                gap: 16px;
+            }
+
+            .progress-group {
+                max-width: 100%;
+            }
+
+            .question-card {
+                padding: 22px 18px;
+            }
+
+            .action-buttons {
+                padding: 22px 18px;
+            }
+
+            .btn {
+                padding: 14px 32px;
+                font-size: 1em;
+            }
+
+            .timer-display {
+                font-size: 1.3em;
+                padding: 8px 18px;
+            }
+
+            .result-score {
+                font-size: 3.8em;
+            }
+
+            .result-panel {
+                padding: 40px 28px;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="noise-bg"></div>
+
+    <div class="container">
+        <!-- Header -->
+        <div class="header" id="examHeader">
+            <h1 class="exam-title" id="examTitle">🎓 英语四级模拟试卷 (CET-4)</h1>
+            <p class="exam-subtitle" id="examSubtitle">共50道题 | 限时60分钟 | 包含词汇、语法、填空、阅读理解</p>
+        </div>
+
+        <!-- Status Bar (Timer + Progress) -->
+        <div class="status-bar" id="statusBar">
+            <div class="timer-group">
+                <span class="timer-label">⏱️ 已用时间</span>
+                <div class="timer-display" id="timer">00:00:00</div>
+            </div>
+            
+            <div class="progress-group">
+                <div class="progress-label">答题进度</div>
+                <div style="display: flex; align-items: center; gap: 10px;">
+                    <div class="progress-bar" style="flex: 1;">
+                        <div class="progress-fill" id="progressFill" style="width: 0%"></div>
+                    </div>
+                    <span id="progressText" style="font-weight: 700; color: var(--primary); font-size: 0.95em;">0/0</span>
+                </div>
+            </div>
+        </div>
+
+        <!-- Questions Container -->
+        <div class="questions-container" id="questionsContainer"></div>
+
+        <!-- Action Buttons -->
+        <div class="action-buttons" id="actionButtons">
+            <button class="btn btn-success" onclick="submitExam()" id="submitBtn">
+                ✅ 提交试卷
+            </button>
+            <button class="btn btn-warning" onclick="resetExam()">
+                🔄 重新开始
+            </button>
+        </div>
+
+        <!-- Result Panel -->
+        <div class="result-panel" id="resultPanel" style="display: none;">
+            <div class="result-icon">🎉</div>
+            <h2 class="result-title">考试完成！</h2>
+            <div class="result-score" id="scoreDisplay">0%</div>
+            <div class="result-details" id="resultDetails"></div>
+            <div class="result-grade" id="resultGrade"></div>
+            <div style="margin-top: 36px; position: relative;">
+                <button class="btn" onclick="resetExam()" 
+                        style="background: white; color: var(--primary); box-shadow: 0 8px 24px rgba(0,0,0,0.15);">
+                    🔄 再来一次
+                </button>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        // 题目数据（由AI生成或用户提供）
+        const EXAM_DATA = [
+            // ========== 第一部分：词汇选择题 (1-15) ==========
+            {
+                "type": "multiple_choice",
+                "question": "The government has taken measures to ______ the spread of the disease.",
+                "options": ["prevent", "pretend", "present", "preserve"],
+                "answer": "prevent"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "It is important to ______ a good balance between work and leisure.",
+                "options": ["maintain", "remain", "sustain", "retain"],
+                "answer": "maintain"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The company decided to ______ its operations to overseas markets.",
+                "options": ["expand", "expend", "extend", "extent"],
+                "answer": "expand"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "His speech was so ______ that everyone was deeply moved.",
+                "options": ["impressive", "expressive", "aggressive", "comprehensive"],
+                "answer": "impressive"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "Scientists are still trying to find a ______ for this rare disease.",
+                "options": ["cure", "heal", "treat", "recover"],
+                "answer": "cure"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The new policy will come into ______ next month.",
+                "options": ["effect", "affect", "effort", "afford"],
+                "answer": "effect"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "She has a remarkable ______ for learning languages.",
+                "options": ["ability", "capability", "capacity", "talent"],
+                "answer": "ability"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The project requires significant ______ of time and money.",
+                "options": ["investment", "inventory", "involvement", "invitation"],
+                "answer": "investment"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "We should ______ our natural resources for future generations.",
+                "options": ["conserve", "reserve", "preserve", "deserve"],
+                "answer": "conserve"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The accident was caused by driver's ______ of attention.",
+                "options": ["lack", "shortage", "absence", "need"],
+                "answer": "lack"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "It is ______ that he will succeed in this challenging task.",
+                "options": ["likely", "alike", "like", "likelihood"],
+                "answer": "likely"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The professor's lecture was too ______ for most students to understand.",
+                "options": ["complex", "complicate", "simple", "sample"],
+                "answer": "complex"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "We need to find a ______ solution to this environmental problem.",
+                "options": ["sustainable", "suitable", "available", "valuable"],
+                "answer": "sustainable"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The museum attracts thousands of ______ every year.",
+                "options": ["visitors", "viewers", "observers", "spectators"],
+                "answer": "visitors"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "His ______ to detail makes him an excellent researcher.",
+                "options": ["attention", "intention", "extension", "dimension"],
+                "answer": "attention"
+            },
+
+            // ========== 第二部分：语法选择题 (16-25) ==========
+            {
+                "type": "multiple_choice",
+                "question": "If I ______ you, I would accept that job offer.",
+                "options": ["were", "am", "was", "be"],
+                "answer": "were"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "By the time she arrives, we ______ here for two hours.",
+                "options": ["will have waited", "will wait", "have waited", "had waited"],
+                "answer": "will have waited"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The book ______ on the table belongs to my sister.",
+                "options": ["lying", "laying", "laid", "lieing"],
+                "answer": "lying"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "Neither the students nor the teacher ______ aware of the change.",
+                "options": ["was", "were", "are", "be"],
+                "answer": "was"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "She suggested that he ______ a doctor immediately.",
+                "options": ["see", "sees", "saw", "seeing"],
+                "answer": "see"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "______ hard he tries, he never seems to succeed.",
+                "options": ["However", "Whatever", "Whenever", "Wherever"],
+                "answer": "However"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "This is one of the most interesting books that I ______.",
+                "options": ["have ever read", "ever read", "had ever read", "ever reading"],
+                "answer": "have ever read"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "Not until yesterday ______ about the meeting.",
+                "options": ["did I learn", "I learned", "I did learn", "learned I"],
+                "answer": "did I learn"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "The reason ______ he refused the invitation is unclear.",
+                "options": ["why", "which", "that", "what"],
+                "answer": "why"
+            },
+            {
+                "type": "multiple_choice",
+                "question": "Only when you have collected enough data ______ a conclusion.",
+                "options": ["can you draw", "you can draw", "you draw", "draw can you"],
+                "answer": "can you draw"
+            },
+
+            // ========== 第三部分：填空题 (26-35) ==========
+            {
+                "type": "fill_blank",
+                "question": "She (go) ___ to the library every Saturday morning.",
+                "answer": "goes"
+            },
+            {
+                "type": "fill_blank",
+                "question": "By next year, they (complete) ___ the construction of the new bridge.",
+                "answer": "will have completed"
+            },
+            {
+                "type": "fill_blank",
+                "question": "If I (know) ___ about the problem earlier, I would have helped.",
+                "answer": "had known"
+            },
+            {
+                "type": "fill_blank",
+                "question": "The report (write) ___ by three experts in the field.",
+                "answer": "was written"
+            },
+            {
+                "type": "fill_blank",
+                "question": "He insisted that he (be) ___ innocent of the crime.",
+                "answer": "was"
+            },
+            {
+                "type": "fill_blank",
+                "question": "While I (walk) ___ home, it suddenly started to rain.",
+                "answer": "was walking"
+            },
+            {
+                "type": "fill_blank",
+                "question": "This is the first time I (visit) ___ Beijing.",
+                "answer": "have visited"
+            },
+            {
+                "type": "fill_blank",
+                "question": "The teacher asked the students (not talk) ___ during the exam.",
+                "answer": "not to talk"
+            },
+            {
+                "type": "fill_blank",
+                "question": "Neither Tom nor his friends (be) ___ at the party last night.",
+                "answer": "were"
+            },
+            {
+                "type": "fill_blank",
+                "question": "She wishes she (study) ___ harder when she was in college.",
+                "answer": "had studied"
+            },
+
+            // ========== 第四部分：阅读理解 Passage 1 (36-40) ==========
+            {
+                "type": "reading_comprehension",
+                "passage": "Climate change is one of the most pressing challenges facing humanity today. The Earth's average temperature has risen by approximately 1.1°C since the pre-industrial era, primarily due to human activities such as burning fossil fuels and deforestation. This warming trend is causing more frequent and severe weather events, including heatwaves, droughts, floods, and hurricanes.<br><br>Scientists warn that if global warming exceeds 1.5°C above pre-industrial levels, the consequences could be catastrophic. Rising sea levels threaten coastal cities and small island nations, while changing weather patterns disrupt agriculture and water supplies. Many species face extinction as their habitats disappear or become unsuitable.<br><br>However, there is hope. Renewable energy technologies like solar and wind power are becoming increasingly affordable and efficient. Electric vehicles are gaining popularity, and many countries have committed to achieving carbon neutrality by 2050. Individual actions also matter: reducing energy consumption, eating less meat, and using public transportation can all contribute to fighting climate change.",
+                "questions": [
+                    {
+                        "question": "What is the main cause of climate change mentioned in the passage?",
+                        "options": ["Natural cycles", "Human activities", "Solar radiation", "Volcanic eruptions"],
+                        "answer": "Human activities"
+                    },
+                    {
+                        "question": "According to scientists, what temperature increase could lead to catastrophic consequences?",
+                        "options": ["0.5°C", "1.0°C", "1.5°C", "2.0°C"],
+                        "answer": "1.5°C"
+                    },
+                    {
+                        "question": "Which of the following is NOT mentioned as a consequence of climate change?",
+                        "options": ["Rising sea levels", "Species extinction", "Economic growth disruption", "Extreme weather events"],
+                        "answer": "Economic growth disruption"
+                    },
+                    {
+                        "question": "What gives us hope according to the passage?",
+                        "options": ["Renewable energy development", "Government regulations only", "Natural recovery processes", "International treaties alone"],
+                        "answer": "Renewable energy development"
+                    },
+                    {
+                        "question": "What can individuals do to help fight climate change?",
+                        "options": ["Use more fossil fuels", "Reduce energy consumption", "Increase meat consumption", "Drive private cars more often"],
+                        "answer": "Reduce energy consumption"
+                    }
+                ]
+            },
+
+            // ========== 阅读理解 Passage 2 (41-45) ==========
+            {
+                "type": "reading_comprehension",
+                "passage": "Artificial Intelligence (AI) is transforming virtually every aspect of modern life. From smartphones that recognize our faces to recommendation systems that suggest what we might want to watch or buy, AI has become deeply embedded in our daily routines. Machine learning, a subset of AI, enables computers to learn from data without being explicitly programmed for each specific task.<br><br>In healthcare, AI is revolutionizing diagnosis and treatment. Algorithms can now detect diseases like cancer earlier than traditional methods, sometimes years before symptoms appear. AI-powered robots assist surgeons with precision operations, reducing human error and speeding up recovery times.<br><br>However, the rapid advancement of AI also raises important ethical concerns. Questions about privacy, job displacement, and algorithmic bias need careful consideration. As AI systems make more decisions affecting people's lives, ensuring fairness and transparency becomes crucial. Experts emphasize the importance of developing AI responsibly, with proper safeguards and human oversight.",
+                "questions": [
+                    {
+                        "question": "What enables computers to learn from data without explicit programming?",
+                        "options": ["Deep learning", "Machine learning", "Neural networks", "Data mining"],
+                        "answer": "Machine learning"
+                    },
+                    {
+                        "question": "How is AI helping in healthcare according to the passage?",
+                        "options": ["Replacing doctors entirely", "Revolutionizing diagnosis and treatment", "Reducing hospital costs only", "Eliminating all medical errors"],
+                        "answer": "Revolutionizing diagnosis and treatment"
+                    },
+                    {
+                        "question": "What advantage do AI-powered surgical robots offer?",
+                        "options": ["Lower costs", "Precision operations", "Faster training", "Complete automation"],
+                        "answer": "Precision operations"
+                    },
+                    {
+                        "question": "Which concern about AI is NOT mentioned in the passage?",
+                        "options": ["Privacy issues", "Job displacement", "Algorithmic bias", "Energy consumption"],
+                        "answer": "Energy consumption"
+                    },
+                    {
+                        "question": "What do experts emphasize regarding AI development?",
+                        "options": ["Maximum speed of development", "Responsible development with safeguards", "Complete automation without humans", "Focus on entertainment applications"],
+                        "answer": "Responsible development with safeguards"
+                    }
+                ]
+            },
+
+            // ========== 阅读理解 Passage 3 (46-50) ==========
+            {
+                "type": "reading_comprehension",
+                "passage": "The concept of lifelong learning has gained increasing importance in today's rapidly changing world. Unlike previous generations who often had one career for life, modern workers may change jobs multiple times and even switch industries entirely throughout their working lives. This shift demands continuous skill development and adaptation.<br><br>Online learning platforms have made education more accessible than ever before. Universities now offer massive open online courses (MOOCs) that allow anyone with internet access to learn from top professors around the world. Professional certifications and micro-credentials provide flexible pathways for career advancement without requiring years of traditional study.<br><br>Employers increasingly value adaptability and learning ability over specific technical skills that may quickly become obsolete. Soft skills such as critical thinking, communication, and emotional intelligence are becoming equally important as technical expertise. The most successful professionals are those who embrace curiosity and maintain a growth mindset throughout their careers.",
+                "questions": [
+                    {
+                        "question": "Why has lifelong learning become more important nowadays?",
+                        "options": ["People live longer", "Careers require continuous adaptation", "Traditional education is failing", "Technology is too complicated"],
+                        "answer": "Careers require continuous adaptation"
+                    },
+                    {
+                        "question": "What have online learning platforms enabled?",
+                        "options": ["Free university degrees", "More accessible education", "Elimination of teachers", "Instant job placement"],
+                        "answer": "More accessible education"
+                    },
+                    {
+                        "question": "What do MOOCs allow learners to do?",
+                        "options": ["Earn traditional degrees automatically", "Learn from top professors globally", "Skip all examinations", "Get guaranteed employment"],
+                        "answer": "Learn from top professors globally"
+                    },
+                    {
+                        "question": "What do employers value more than quickly obsolete technical skills?",
+                        "options": ["Years of experience", "Adaptability and learning ability", "Specific certifications", "Academic grades"],
+                        "answer": "Adaptability and learning ability"
+                    },
+                    {
+                        "question": "What characterizes the most successful professionals according to the passage?",
+                        "options": ["Specialized expertise only", "Curiosity and growth mindset", "Multiple academic degrees", "Early retirement planning"],
+                        "answer": "Curiosity and growth mindset"
+                    }
+                ]
+            }
+        ];
+
+        /*
+        题目JSON格式示例：
+        
+        [
+            {
+                "type": "multiple_choice",
+                "question": "问题文本",
+                "options": ["A", "B", "C", "D"],
+                "answer": "正确答案"
+            },
+            {
+                "type": "fill_blank",
+                "question": "She ___ (go) to school.",
+                "answer": "goes"
+            },
+            {
+                "type": "reading_comprehension",
+                "passage": "文章内容...",
+                "questions": [
+                    {
+                        "question": "问题1",
+                        "options": ["A", "B", "C", "D"],
+                        "answer": "正确答案"
+                    }
+                ]
+            },
+            {
+                "type": "multiple_select",
+                "question": "多选题（多选）",
+                "options": ["A", "B", "C", "D"],
+                "answer": ["答案1", "答案2"]
+            }
+        ]
+        */
+
+        let timerInterval = null;
+        let elapsedTime = 0;
+        let examData = [];
+        let userAnswers = {};
+        let isSubmitted = false;
+
+        function initExam() {
+            if (EXAM_DATA.length === 0) {
+                document.getElementById('questionsContainer').innerHTML = `
+                    <div style="text-align: center; padding: 80px 40px; background: white; border-radius: 20px; border: 2px dashed var(--border);">
+                        <div style="font-size: 4em; margin-bottom: 20px;">📝</div>
+                        <h2 style="font-family: 'Fraunces', serif; font-size: 1.8em; color: var(--text-primary); margin-bottom: 12px;">暂无题目</h2>
+                        <p style="color: var(--text-secondary); font-size: 1.05em;">请通过AI助手生成试卷题目</p>
+                    </div>
+                `;
+                document.getElementById('submitBtn').disabled = true;
+                document.getElementById('submitBtn').style.opacity = '0.5';
+                return;
+            }
+
+            examData = EXAM_DATA;
+            renderQuestions();
+            startTimer(60); // 四级考试时间：60分钟
+        }
+
+        function renderQuestions() {
+            const container = document.getElementById('questionsContainer');
+            container.innerHTML = '';
+
+            examData.forEach((q, index) => {
+                const card = createQuestionCard(q, index);
+                container.appendChild(card);
+            });
+
+            updateProgress();
+        }
+
+        function createQuestionCard(question, index) {
+            const card = document.createElement('div');
+            card.className = 'question-card';
+            card.id = `question-${index}`;
+
+            const typeLabels = {
+                'multiple_choice': '单选题',
+                'multiple_select': '多选题',
+                'fill_blank': '填空题',
+                'reading_comprehension': '阅读理解'
+            };
+
+            let content = `
+                <div class="question-header">
+                    <span class="question-number">${index + 1}</span>
+                    <span class="question-type-badge">${typeLabels[question.type] || '题目'}</span>
+                </div>
+            `;
+
+            if (question.type === 'reading_comprehension') {
+                content += `<div class="reading-passage">${question.passage}</div><div style="margin-top: 18px;">`;
+                
+                question.questions.forEach((subQ, subIndex) => {
+                    content += `
+                        <div style="margin-bottom: 22px; padding-left: 8px;">
+                            <div class="question-text" style="font-size: 1.04em; margin-bottom: 14px;">
+                                <strong>${index + 1}.${subIndex + 1}</strong> ${subQ.question}
+                            </div>
+                            <ul class="options-list">
+                                ${subQ.options.map((opt, optIdx) => `
+                                    <li class="option-item" 
+                                        onclick="selectOption(${index}, ${subIndex}, '${opt.replace(/'/g, "\\'")}', this)">
+                                        <span class="option-marker">${String.fromCharCode(65 + optIdx)}</span>
+                                        <span class="option-text">${opt}</span>
+                                    </li>
+                                `).join('')}
+                            </ul>
+                        </div>
+                    `;
+                });
+                content += '</div>';
+            } else if (question.type === 'fill_blank') {
+                content += `
+                    <div class="question-text">${question.question.replace('___', '<input type="text" class="fill-blank-input" id="answer-' + index + '" oninput="recordAnswer(' + index + ', this.value)" placeholder="输入答案">')}</div>
+                `;
+            } else if (question.type === 'multiple_select') {
+                content += `
+                    <div class="question-text">${question.question}</div>
+                    <ul class="options-list">
+                        ${question.options.map((opt, idx) => `
+                            <li class="option-item" onclick="toggleMultiSelect(${index}, '${opt.replace(/'/g, "\\'")}', this)">
+                                <span class="option-marker">☐</span>
+                                <span class="option-text">${opt}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            } else {
+                content += `
+                    <div class="question-text">${question.question}</div>
+                    <ul class="options-list">
+                        ${question.options.map((opt, idx) => `
+                            <li class="option-item" onclick="selectOption(${index}, -1, '${opt.replace(/'/g, "\\'")}', this)">
+                                <span class="option-marker">${String.fromCharCode(65 + idx)}</span>
+                                <span class="option-text">${opt}</span>
+                            </li>
+                        `).join('')}
+                    </ul>
+                `;
+            }
+
+            card.innerHTML = content;
+            return card;
+        }
+
+        function selectOption(questionIndex, subQuestionIndex, option, element) {
+            if (isSubmitted) return;
+
+            const parent = element.parentElement;
+            parent.querySelectorAll('.option-item').forEach(item => {
+                item.classList.remove('selected');
+                const marker = item.querySelector('.option-marker');
+                if (marker && !marker.textContent.includes('☐')) {
+                    marker.style.background = 'white';
+                    marker.style.color = 'var(--text-secondary)';
+                    marker.style.borderColor = 'var(--border)';
+                }
+            });
+            element.classList.add('selected');
+
+            const marker = element.querySelector('.option-marker');
+            if (marker && !marker.textContent.includes('☐')) {
+                marker.style.background = 'var(--primary)';
+                marker.style.color = 'white';
+                marker.style.borderColor = 'var(--primary)';
+            }
+
+            if (subQuestionIndex >= 0) {
+                userAnswers[`${questionIndex}-${subQuestionIndex}`] = option;
+            } else {
+                userAnswers[questionIndex] = option;
+            }
+
+            updateProgress();
+        }
+
+        function toggleMultiSelect(questionIndex, option, element) {
+            if (isSubmitted) return;
+
+            element.classList.toggle('selected');
+            const marker = element.querySelector('.option-marker');
+
+            if (element.classList.contains('selected')) {
+                marker.textContent = '☑';
+                marker.style.background = 'var(--primary)';
+                marker.style.color = 'white';
+                marker.style.borderColor = 'var(--primary)';
+            } else {
+                marker.textContent = '☐';
+                marker.style.background = 'white';
+                marker.style.color = 'var(--text-secondary)';
+                marker.style.borderColor = 'var(--border)';
+            }
+
+            if (!userAnswers[questionIndex]) {
+                userAnswers[questionIndex] = [];
+            }
+
+            const idx = userAnswers[questionIndex].indexOf(option);
+            if (idx > -1) {
+                userAnswers[questionIndex].splice(idx, 1);
+            } else {
+                userAnswers[questionIndex].push(option);
+            }
+
+            updateProgress();
+        }
+
+        function recordAnswer(questionIndex, value) {
+            if (isSubmitted) return;
+            userAnswers[questionIndex] = value.trim();
+            updateProgress();
+        }
+
+        function updateProgress() {
+            const total = getTotalQuestions();
+            const answered = Object.keys(userAnswers).length;
+            const percentage = total > 0 ? (answered / total) * 100 : 0;
+
+            document.getElementById('progressFill').style.width = `${percentage}%`;
+            document.getElementById('progressText').textContent = `${answered}/${total}`;
+        }
+
+        function getTotalQuestions() {
+            let total = 0;
+            examData.forEach(q => {
+                if (q.type === 'reading_comprehension') {
+                    total += q.questions.length;
+                } else {
+                    total += 1;
+                }
+            });
+            return total;
+        }
+
+        function startTimer(minutes) {
+            elapsedTime = 0;
+            const limit = minutes * 60;
+
+            if (timerInterval) clearInterval(timerInterval);
+
+            timerInterval = setInterval(() => {
+                elapsedTime++;
+
+                const hours = Math.floor(elapsedTime / 3600);
+                const mins = Math.floor((elapsedTime % 3600) / 60);
+                const secs = elapsedTime % 60;
+
+                document.getElementById('timer').textContent =
+                    `${String(hours).padStart(2, '0')}:${String(mins).padStart(2, '0')}:${String(secs).padStart(2, '0')}`;
+
+                if (elapsedTime >= limit && limit > 0) {
+                    clearInterval(timerInterval);
+                    alert('⏰ 时间到！\n\n系统将自动提交您的试卷...');
+                    submitExam();
+                }
+            }, 1000);
+        }
+
+        function submitExam() {
+            if (isSubmitted) return;
+            isSubmitted = true;
+
+            clearInterval(timerInterval);
+
+            let correct = 0;
+            let total = 0;
+
+            examData.forEach((q, qIndex) => {
+                if (q.type === 'reading_comprehension') {
+                    q.questions.forEach((subQ, subIndex) => {
+                        total++;
+                        const key = `${qIndex}-${subIndex}`;
+                        const userAnswer = userAnswers[key];
+
+                        if (userAnswer === subQ.answer) {
+                            correct++;
+                            markCorrect(qIndex, subIndex);
+                        } else {
+                            markIncorrect(qIndex, subIndex, subQ.answer);
+                        }
+                    });
+                } else if (q.type === 'multiple_select') {
+                    total++;
+                    const userAns = userAnswers[qIndex] || [];
+                    const correctAns = q.answer;
+
+                    if (JSON.stringify(userAns.sort()) === JSON.stringify(correctAns.sort())) {
+                        correct++;
+                        markMultiSelectCorrect(qIndex);
+                    } else {
+                        markMultiSelectIncorrect(qIndex, correctAns);
+                    }
+                } else if (q.type === 'fill_blank') {
+                    total++;
+                    const userAnswer = (userAnswers[qIndex] || '').toLowerCase().trim();
+                    const correctAnswer = q.answer.toLowerCase().trim();
+
+                    if (userAnswer === correctAnswer) {
+                        correct++;
+                        markFillBlankCorrect(qIndex);
+                    } else {
+                        markFillBlankIncorrect(qIndex, q.answer);
+                    }
+                } else {
+                    total++;
+                    const userAnswer = userAnswers[qIndex];
+
+                    if (userAnswer === q.answer) {
+                        correct++;
+                        markOptionCorrect(qIndex);
+                    } else {
+                        markOptionIncorrect(qIndex, q.answer);
+                    }
+                }
+            });
+
+            showResults(correct, total);
+        }
+
+        function markCorrect(qIndex, subIndex) {
+            const card = document.getElementById(`question-${qIndex}`);
+            const options = card.querySelectorAll('.option-item');
+            const userAnswer = userAnswers[`${qIndex}-${subIndex}`];
+
+            options.forEach(opt => {
+                if (opt.querySelector('.option-text')?.textContent.includes(userAnswer)) {
+                    opt.classList.add('correct');
+                }
+            });
+        }
+
+        function markIncorrect(qIndex, subIndex, correctAnswer) {
+            const card = document.getElementById(`question-${qIndex}`);
+            const options = card.querySelectorAll('.option-item');
+            const userAnswer = userAnswers[`${qIndex}-${subIndex}`];
+
+            options.forEach(opt => {
+                const optText = opt.querySelector('.option-text')?.textContent;
+                if (optText?.includes(userAnswer)) {
+                    opt.classList.add('incorrect');
+                }
+                if (optText?.includes(correctAnswer)) {
+                    opt.classList.add('correct');
+                }
+            });
+        }
+
+        function markOptionCorrect(qIndex) {
+            const card = document.getElementById(`question-${qIndex}`);
+            const selected = card.querySelector('.option-item.selected');
+            if (selected) selected.classList.add('correct');
+        }
+
+        function markOptionIncorrect(qIndex, correctAnswer) {
+            const card = document.getElementById(`question-${qIndex}`);
+            const options = card.querySelectorAll('.option-item');
+
+            options.forEach(opt => {
+                if (opt.classList.contains('selected')) opt.classList.add('incorrect');
+                if (opt.querySelector('.option-text')?.textContent.includes(correctAnswer)) {
+                    opt.classList.add('correct');
+                }
+            });
+        }
+
+        function markMultiSelectCorrect(qIndex) {
+            const card = document.getElementById(`question-${qIndex}`);
+            card.querySelectorAll('.option-item.selected').forEach(opt => opt.classList.add('correct'));
+        }
+
+        function markMultiSelectIncorrect(qIndex, correctAnswers) {
+            const card = document.getElementById(`question-${qIndex}`);
+            const options = card.querySelectorAll('.option-item');
+
+            options.forEach(opt => {
+                const optText = opt.querySelector('.option-text')?.textContent;
+                if (opt.classList.contains('selected')) {
+                    if (!correctAnswers.some(ans => optText?.includes(ans))) {
+                        opt.classList.add('incorrect');
+                    } else {
+                        opt.classList.add('correct');
+                    }
+                }
+                if (correctAnswers.some(ans => optText?.includes(ans))) {
+                    opt.classList.add('correct');
+                }
+            });
+        }
+
+        function markFillBlankCorrect(qIndex) {
+            const input = document.getElementById(`answer-${qIndex}`);
+            if (input) {
+                input.style.borderColor = 'var(--success)';
+                input.style.backgroundColor = '#D1FAE5';
+            }
+        }
+
+        function markFillBlankIncorrect(qIndex, correctAnswer) {
+            const input = document.getElementById(`answer-${qIndex}`);
+            if (input) {
+                input.style.borderColor = 'var(--danger)';
+                input.style.backgroundColor = '#FEE2E2';
+                input.title = `正确答案: ${correctAnswer}`;
+            }
+        }
+
+        function showResults(correct, total) {
+            const score = Math.round((correct / total) * 100);
+            const timeUsed = document.getElementById('timer').textContent;
+
+            document.getElementById('scoreDisplay').textContent = `${score}%`;
+
+            let gradeText = '';
+            if (score >= 90) gradeText = '🌟 卓越优秀！';
+            else if (score >= 80) gradeText = '👍 表现出色！';
+            else if (score >= 70) gradeText = '💪 继续加油！';
+            else if (score >= 60) gradeText = '📚 还需努力！';
+            else gradeText = '💡 多加练习！';
+
+            document.getElementById('resultDetails').innerHTML = `
+                ✅ 正确：<strong>${correct}</strong> 题<br>
+                ❌ 错误：<strong>${total - correct}</strong> 题<br>
+                ⏱️ 用时：<strong>${timeUsed}</strong><br>
+                📊 正确率：<strong>${score}%</strong>
+            `;
+
+            document.getElementById('resultGrade').innerHTML = gradeText;
+
+            document.getElementById('resultPanel').style.display = 'block';
+            document.getElementById('actionButtons').style.display = 'none';
+            
+            setTimeout(() => {
+                document.getElementById('resultPanel').scrollIntoView({ behavior: 'smooth' });
+            }, 100);
+        }
+
+        function resetExam() {
+            clearInterval(timerInterval);
+            document.getElementById('timer').textContent = '00:00:00';
+            document.getElementById('resultPanel').style.display = 'none';
+            document.getElementById('actionButtons').style.display = 'flex';
+
+            examData = [];
+            userAnswers = {};
+            isSubmitted = false;
+            elapsedTime = 0;
+
+            initExam();
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+        }
+
+        window.onload = function() {
+            initExam();
+        };
+    </script>
+</body>
+</html>
